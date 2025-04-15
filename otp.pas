@@ -7,7 +7,7 @@ unit otp;
 
 interface
 
-uses SysUtils, Math, DateUtils, flcHash;
+uses SysUtils, Math, DateUtils, hashing;
 
 function otp_gen_key(len: integer=32): string;
 function otp_calc(key: string; digits: integer=6; secs: integer=30; counter: integer=-1; hash: string='sha1'): string;
@@ -18,16 +18,6 @@ implementation
 
 const
   RFC4648_ALPHABET = 'abcdefghijklmnopqrstuvwxyz234567';
-
-function hmac_sha1(key, data: string): string;
-begin
-  result := DigestToBufB(CalcHMAC_SHA1(key, data), 20);
-end;
-
-function hmac_sha256(key, data: string): string;
-begin
-  result := DigestToBufB(CalcHMAC_SHA256(key, data), 32);
-end;
 
 function otp_gen_key(len: integer=32): string;
 var
@@ -72,9 +62,9 @@ begin
 
   // hashed key
   if hash = 'sha1' then
-    hashedkey := hmac_sha1(binarykey, t)
+    hashedkey := hmac_sha1(@t[1], length(t), @binarykey[1], length(binarykey), true)
   else if hash = 'sha256' then
-    hashedkey := hmac_sha256(binarykey, t)
+    hashedkey := hmac_sha256(@t[1], length(t), @binarykey[1], length(binarykey), true)
   else
     exit;
 
