@@ -4,8 +4,6 @@ unit hashing;
 // https://github.com/fibodevy
 
 {$mode ObjFPC}{$H+}
-{$modeswitch anonymousfunctions}
-{$modeswitch functionreferences}
 
 interface
 
@@ -22,10 +20,7 @@ function sha1(const s: rawbytestring): rawbytestring;
 function sha256(const s: rawbytestring): rawbytestring;
 
 // HMAC
-type
-  thashfunc = reference to function(data: string): string;
-
-function hash_hmac(hash: thashfunc; blocksize: dword; data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
+function hash_hmac(hashingfunc: pointer; blocksize: dword; data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
 function hmac_sha1(data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
 function hmac_sha256(data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
 
@@ -269,17 +264,21 @@ begin
 end;
 
 // HMAC
-function hash_hmac(hash: thashfunc; blocksize: dword; data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
+function hash_hmac(hashingfunc: pointer; blocksize: dword; data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
+type
+  thashingfunc = function(const s: rawbytestring): rawbytestring;
 var
   opad, ipad: tbytes;
   i: integer;
   s: string;
+  hf: thashingfunc;
 begin
+  pointer(hf) := hashingfunc;
   // fix key
   if keylen > blocksize then begin
     setlength(s, keylen);
     move(key^, s[1], keylen);
-    s := hash(s);
+    s := hf(s);
     key := @s[1];
     keylen := length(s);
   end;
@@ -293,24 +292,18 @@ begin
     ipad[i] := ipad[i] xor ord(key[i]);
   end;
   // hash it
-  result := hash(tobin(opad)+hash(tobin(ipad)+tobin(data, datalen)));
+  result := hf(tobin(opad)+hf(tobin(ipad)+tobin(data, datalen)));
   if not raw then result := tohex(@result[1], length(result));
 end;
 
 function hmac_sha1(data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
 begin
-  result := hash_hmac(function(data: string): string
-  begin
-    result := sha1(data);
-  end, 64, data, datalen, key, keylen, raw);
+  result := hash_hmac(@sha1, 64, data, datalen, key, keylen, raw);
 end;
 
 function hmac_sha256(data: pbyte; datalen: dword; key: pbyte; keylen: dword; raw: boolean=false): string;
 begin
-  result := hash_hmac(function(data: string): string
-  begin
-    result := sha256(data);
-  end, 64, data, datalen, key, keylen, raw);
+  result := hash_hmac(@sha256, 64, data, datalen, key, keylen, raw);
 end;
 
 end.
