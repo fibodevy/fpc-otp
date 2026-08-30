@@ -1,5 +1,3 @@
-
-
 # fpc-otp
 
 TOTP & HOTP. SHA1 & SHA256. Time based or counter based.
