@@ -1,3 +1,5 @@
+
+
 # fpc-otp
 
 TOTP & HOTP. SHA1 & SHA256. Time based or counter based.
@@ -16,16 +18,16 @@ function hotp_calc(key: string; digits: integer=6; counter: integer=0; hash: str
 #### Example of use: TOTP
 
 ```pas
-totp_calc(otpkey, 6, 30));
-totp_calc(otpkey, 6, 30, 'sha256'));
+totp_calc(otpkey, 6, 30);
+totp_calc(otpkey, 6, 30, 'sha256');
 ```
 
 #### Example of use: HOTP
 
 ```pas
-hotp_calc(otpkey, 6, 0));
-hotp_calc(otpkey, 6, 1));
-hotp_calc(otpkey, 6, 2));
+hotp_calc(otpkey, 6, 0);
+hotp_calc(otpkey, 6, 1);
+hotp_calc(otpkey, 6, 2);
 ```
 #### Demo output
 
